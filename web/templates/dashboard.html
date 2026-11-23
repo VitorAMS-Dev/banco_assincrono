@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Livro-caixa — Banco Async{% endblock %}
+
+{% block content %}
+<div class="dash-grid">
+
+  <section class="page page-ledger">
+    <div class="stitch"></div>
+
+    {% if contas %}
+      <div class="account-switch">
+        {% for c in contas %}
+          <a class="account-tab {% if conta_atual and c.id == conta_atual.id %}active{% endif %}"
+             href="{{ url_for('dashboard', conta_id=c.id) }}">Conta {{ c.numero }}</a>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% if conta_atual %}
+      <div class="balance-row">
+        <div>
+          <p class="eyebrow">Saldo disponível</p>
+          <p class="balance-figure">R$ {{ "%.2f"|format(conta_atual.saldo|float) }}</p>
+          <p class="account-number">Conta {{ conta_atual.numero }}</p>
+        </div>
+        <div class="seal seal-{{ 'ok' if conta_atual.status == 'ATIVA' else 'blocked' }}">
+          {{ conta_atual.status }}
+        </div>
+      </div>
+
+      <div class="ledger-hr"></div>
+
+      <div class="actions-grid">
+        <form method="POST" action="{{ url_for('deposito') }}" class="action-card">
+          <input type="hidden" name="conta_id" value="{{ conta_atual.id }}">
+          <h3>Depósito</h3>
+          <input type="text" name="valor" placeholder="0,00" required>
+          <button type="submit" class="btn btn-ghost">Depositar</button>
+        </form>
+
+        <form method="POST" action="{{ url_for('saque') }}" class="action-card">
+          <input type="hidden" name="conta_id" value="{{ conta_atual.id }}">
+          <h3>Saque</h3>
+          <input type="text" name="valor" placeholder="0,00" required>
+          <button type="submit" class="btn btn-ghost">Sacar</button>
+        </form>
+
+        <form method="POST" action="{{ url_for('transferencia') }}" class="action-card action-card-wide">
+          <input type="hidden" name="conta_id" value="{{ conta_atual.id }}">
+          <h3>Transferência</h3>
+          <input type="text" name="conta_destino" placeholder="Número da conta destino (ex: 1234-5)" required>
+          <input type="text" name="valor" placeholder="0,00" required>
+          <button type="submit" class="btn btn-ghost">Transferir</button>
+        </form>
+      </div>
+
+      <div class="ledger-hr"></div>
+
+      <div class="page-actions">
+        <a class="btn btn-link" href="{{ url_for('extrato', conta_id=conta_atual.id) }}">Ver extrato completo →</a>
+        {% if conta_atual.status == 'ATIVA' %}
+        <form method="POST" action="{{ url_for('bloquear', conta_id=conta_atual.id) }}">
+          <button type="submit" class="btn btn-text-danger">Bloquear conta</button>
+        </form>
+        {% else %}
+        <form method="POST" action="{{ url_for('desbloquear', conta_id=conta_atual.id) }}">
+          <button type="submit" class="btn btn-text">Desbloquear conta</button>
+        </form>
+        {% endif %}
+      </div>
+    {% else %}
+      <p class="page-sub">Você ainda não possui contas.</p>
+      <form method="POST" action="{{ url_for('criar_conta') }}">
+        <button type="submit" class="btn btn-primary">Abrir minha primeira conta</button>
+      </form>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

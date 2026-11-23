@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Extrato — Banco Async{% endblock %}
+
+{% block content %}
+<section class="page page-ledger">
+  <div class="stitch"></div>
+  <p class="eyebrow">Extrato da conta</p>
+  <h1 class="page-title">Movimentações</h1>
+  <p class="account-number">Saldo atual: R$ {{ "%.2f"|format(extrato.saldo_atual|float) }}</p>
+
+  <div class="ledger-hr"></div>
+
+  <table class="ledger-table">
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>Tipo</th>
+        <th>Descrição</th>
+        <th class="num">Valor</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in extrato.transacoes %}
+      <tr>
+        <td>{{ t.created_at[:16].replace("T", " ") }}</td>
+        <td><span class="tag tag-{{ t.tipo|lower }}">{{ t.tipo.replace("_", " ") }}</span></td>
+        <td>{{ t.descricao or "—" }}</td>
+        <td class="num {{ 'positive' if 'RECEBIDA' in t.tipo or t.tipo == 'DEPOSITO' else 'negative' }}">
+          R$ {{ "%.2f"|format(t.valor|float) }}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4" class="empty">Nenhuma transação registrada ainda.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="pagination">
+    {% if pagina > 1 %}
+      <a class="btn btn-link" href="{{ url_for('extrato', conta_id=conta_id, pagina=pagina-1) }}">← Anterior</a>
+    {% endif %}
+    <span class="page-indicator">Página {{ pagina }}</span>
+    {% if extrato.total > pagina * extrato.tamanho_pagina %}
+      <a class="btn btn-link" href="{{ url_for('extrato', conta_id=conta_id, pagina=pagina+1) }}">Próxima →</a>
+    {% endif %}
+  </div>
+
+  <a class="btn btn-text" href="{{ url_for('dashboard', conta_id=conta_id) }}">← Voltar ao livro-caixa</a>
+</section>
+{% endblock %}

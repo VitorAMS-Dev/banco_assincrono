@@ -1,0 +1,67 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: bank_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: bank_user
+      POSTGRES_PASSWORD: bank_pass
+      POSTGRES_DB: bank_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - bank_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bank_user -d bank_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: bank_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    container_name: bank_api
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://bank_user:bank_pass@db:5432/bank_db
+      REDIS_URL: redis://redis:6379/0
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.web
+    container_name: bank_web
+    restart: unless-stopped
+    environment:
+      FASTAPI_BASE_URL: http://api:8000
+      FLASK_SECRET_KEY: troque_esta_chave_flask
+    ports:
+      - "5000:5000"
+    depends_on:
+      - api
+
+volumes:
+  bank_postgres_data:

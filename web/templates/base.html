@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Banco Async{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark">⌘</span>
+        <span class="brand-text">Banco<em>Async</em></span>
+      </div>
+      {% if logado %}
+      <nav class="topnav">
+        <span class="topnav-cliente">{{ nome_cliente }}</span>
+        <a class="topnav-link" href="{{ url_for('dashboard') }}">Livro-caixa</a>
+        <a class="topnav-link" href="{{ url_for('logout') }}">Sair</a>
+      </nav>
+      {% endif %}
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-stack">
+          {% for category, message in messages %}
+            <div class="flash flash-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <main class="content">
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+      <span>Banco Async — projeto de portfólio · FastAPI + AsyncIO + SQLAlchemy Async + Redis</span>
+    </footer>
+  </div>
+</body>
+</html>
